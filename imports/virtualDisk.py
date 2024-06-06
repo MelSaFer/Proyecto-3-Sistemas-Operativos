@@ -4,12 +4,13 @@
 class VirtualDisk:
 
 
-    def __init__(self, file_path, size):
+    def __init__(self, file_path, disk_size, sector_size):
         self.file_path = file_path
-        self.size = size
-        self.sector_size = 512  # Size of a sector in bytes
+        self.size = disk_size  # Size of the virtual disk in bytes
+        self.sector_size = sector_size  # Size of a sector in bytes
         self.create_virtual_disk()
         self.free_sectors = [True] * (self.size//self.sector_size) # list of free sectors
+        self.fat = {}
 
     def create_virtual_disk(self):
         # Create the virtual disk file if it doesn't exist
@@ -37,13 +38,11 @@ class VirtualDisk:
             f.seek(sector_index * self.sector_size)
             return f.read(self.sector_size)
 
-
     def write_sector(self, sector_index, data):
         with open(self.file_path, 'r+b') as f:
             f.seek(sector_index * self.sector_size)
             f.write(data.ljust(self.sector_size, b'\x00'))  # Fill with zeros if necessary
         self.free_sectors[sector_index] = False  # Mark the sector as not free
-
 
     def format_disk(self):
         with open(self.file_path, 'r+b') as f:

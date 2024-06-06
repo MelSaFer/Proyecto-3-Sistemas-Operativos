@@ -101,7 +101,7 @@ def menu(fs):
 
 def main():
     #Prueba()
-    virtualDisk = VirtualDisk("virtual_disk.bin", 1024 * 1024)
+    virtualDisk = VirtualDisk("virtual_disk.bin", 1024 * 1024, 512)
     fs = FileSystem(virtualDisk)
     print("Virtual Disk created successfully.")
     menu(fs)
