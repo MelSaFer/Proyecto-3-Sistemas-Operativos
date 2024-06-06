@@ -1,9 +1,11 @@
 from imports.fileSystem import FileSystem
 from imports.directory import Directory
 from imports.file import File
+from imports.virtualDisk import VirtualDisk
 
-def main():
-    fs = FileSystem()
+# Create the virtual disk globally
+
+def Prueba(fs):
 
     # Crear algunos directorios
     print("Creando directorios...")
@@ -14,8 +16,8 @@ def main():
     # Cambiar al directorio 'dir1' y crear un archivo
     print("\nCambiando a dir1 y creando archivos...")
     fs.change_directory("dir1")
-    fs.create_file("file1.txt", "Contenido del archivo 1")
-    fs.create_file("file2.txt", "Contenido del archivo 2")
+    fs.create_file("file1.txt", "Contenido del archivo 1", 1000	)
+    fs.create_file("file2.txt", "Contenido del archivo 2", 2000)
     print("Contenidos de dir1:", fs.list_directory())
 
     # Listar archivos en 'dir1'
@@ -38,15 +40,13 @@ def main():
     print(fs.list_directory())
 
 
-def menu():
-    fs = FileSystem()
+def menu(fs):
     while True:
         print("\nCurrent Directory:", fs.current_directory.path)
         print("1. Create File")
         print("2. Create Directory")
         print("3. Change Directory")
         print("4. List Directory")
-        print("5. Move Item")
         print("6. Remove Item")
         print("7. Exit")
 
@@ -56,7 +56,7 @@ def menu():
             name = input("Enter file name: ")
             content = input("Enter content of the file: ")
             try:
-                fs.create_file(name, content)
+                fs.create_file(name, content, len(content)*1000)
                 print("File created successfully.")
             except ValueError as e:
                 print(e)
@@ -84,19 +84,6 @@ def menu():
             if not items:
                 print("Directory is empty.")
 
-        elif choice == "5":
-            item_name = input("Enter the name of the item to move: ")
-            target_dir_name = input("Enter the target directory name: ")
-            try:
-                target_directory = fs.current_directory.children.get(target_dir_name)
-                if not target_directory or not isinstance(target_directory, Directory):
-                    raise ValueError("Target directory does not exist")
-                fs.move_item(item_name, target_directory)
-                print("Item moved successfully.")
-            except ValueError as e:
-                print(e)
-
-
         elif choice == "6":
             name = input("Enter the name of the item to remove: ")
             try:
@@ -112,7 +99,11 @@ def menu():
         else:
             print("Invalid choice. Please choose a valid option.")
 
-if __name__ == "__main__":
-    menu()
+def main():
+    #Prueba()
+    virtualDisk = VirtualDisk("virtual_disk.bin", 1024 * 1024)
+    fs = FileSystem(virtualDisk)
+    print("Virtual Disk created successfully.")
+    menu(fs)
 
-
+main()

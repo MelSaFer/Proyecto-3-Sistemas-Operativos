@@ -6,13 +6,14 @@ from imports.file import File
 class FileSystem:
 
     # Constructor
-    def __init__(self):
+    def __init__(self, disk):
+        self.disk = disk
         self.root = Directory("root")
         self.current_directory = self.root
 
     # Method for creating a file
-    def create_file(self, name, content):
-        new_file = File(name, content, self.current_directory)
+    def create_file(self, name, content, size):
+        new_file = File(name, content, size, self.current_directory)
         self.current_directory.add_item(new_file)
 
     # Method for creating a directory
@@ -49,3 +50,7 @@ class FileSystem:
             del self.current_directory.children[name]
         else:
             raise ValueError("Item not found!")
+        
+    def allocateFile(self):
+        
+        return

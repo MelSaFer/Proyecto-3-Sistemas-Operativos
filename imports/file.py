@@ -2,9 +2,10 @@ from imports.fileSystemItem import FileSystemItem
 
 
 class File(FileSystemItem):
-    def __init__(self, name, content, parent=None):
+    def __init__(self, name, content, size, parent=None):
         super().__init__(name, parent)
         self.content = content
+        self.size = size
 
     def modify_content(self, new_content):
         self.content = new_content

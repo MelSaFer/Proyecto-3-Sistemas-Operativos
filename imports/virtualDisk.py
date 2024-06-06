@@ -9,7 +9,7 @@ class VirtualDisk:
         self.size = size
         self.sector_size = 512  # Size of a sector in bytes
         self.create_virtual_disk()
-        self.free_sectors = [True] * self.sectors # list of free sectors
+        self.free_sectors = [True] * (self.size//self.sector_size) # list of free sectors
 
     def create_virtual_disk(self):
         # Create the virtual disk file if it doesn't exist
@@ -19,6 +19,7 @@ class VirtualDisk:
         except FileNotFoundError:
             with open(self.file_path, 'wb') as f:
                 f.write(b'\x00' * self.size)  # Initialize the file with zeros
+        #print(self.size//self.sector_size)
 
     def find_free_sector(self):
         # Find the first free sector in the virtual disk
@@ -32,21 +33,23 @@ class VirtualDisk:
         return sum(self.free_sectors)
 
     def read_sector(self, sector_index):
-        # Read a sector from the virtual disk
         with open(self.file_path, 'rb') as f:
             f.seek(sector_index * self.sector_size)
-            return f.read(self.sector_meta_size)
+            return f.read(self.sector_size)
+
 
     def write_sector(self, sector_index, data):
-        # Write a sector to the virtual disk
         with open(self.file_path, 'r+b') as f:
             f.seek(sector_index * self.sector_size)
-            f.write(data.ljust(self.sector_size, b'\x00'))  # Rellena con ceros si es necesario
+            f.write(data.ljust(self.sector_size, b'\x00'))  # Fill with zeros if necessary
+        self.free_sectors[sector_index] = False  # Mark the sector as not free
+
 
     def format_disk(self):
-        # Format the virtual disk by writing zeros to the entire disk
         with open(self.file_path, 'r+b') as f:
             f.write(b'\x00' * self.size)
+        self.free_sectors = [True] * (self.size // self.sector_size)  # Reset free sectors list
+
 
 # Example of usage
-# disk = VirtualDisk("virtual_disk.bin", 1024 * 1024)  # Crea un disco de 1MB
+#disk = VirtualDisk("virtual_disk.bin", 1024 * 1024)  # Crea un disco de 1MB
