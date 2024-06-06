@@ -14,5 +14,11 @@ class Directory(FileSystemItem):
     def get_item(self, name):
         return self.children.get(name)
 
+    def remove_item(self, name):
+        if name in self.children:
+            del self.children[name]
+        else:
+            raise KeyError(f"No item named {name} found in {self.path}")
+
     def list_items(self):
-        return self.children.keys()
+        return [(name, 'Directory' if isinstance(item, Directory) else 'File') for name, item in self.children.items()]
