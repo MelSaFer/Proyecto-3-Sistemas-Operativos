@@ -101,8 +101,17 @@ def menu(fs):
 
 def main():
     #Prueba()
-    virtualDisk = VirtualDisk("virtual_disk.bin", 1024 * 1024, 512)
+    diskSize = int(input("Enter the size of the virtual disk in bytes: "))
+    sectorQuantity = int(input("Enter the quantity of a sectors: "))
+    # virtualDisk = VirtualDisk("virtual_disk.bin", 1024 * 1024, 512)
+    # Verifies if the quantity of sectors is valid
+    if diskSize % sectorQuantity != 0:
+        print("The size of the disk must be a multiple of the size of a sector.")
+        return
+    
+    virtualDisk = VirtualDisk("virtual_disk.bin", diskSize, diskSize//sectorQuantity)
     fs = FileSystem(virtualDisk)
+
     print("Virtual Disk created successfully.")
     menu(fs)
 
