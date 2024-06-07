@@ -21,6 +21,24 @@ class FileSystem:
         new_directory = Directory(name, self.current_directory)
         self.current_directory.add_item(new_directory)
 
+
+    # Method for recursive search of a directory
+    def search_directory(self, name, directory, new_items):
+        # print("Recursive search")
+        # print(name + " " + directory.name + " " + str(directory.children))
+        if name == directory.name:
+            # print("Found 1")
+            return new_items + [directory.name]
+        if name in directory.children and isinstance(directory.get_item(name), Directory):
+            # print("Found 2")
+            return new_items + [name]
+        for item_name, item in directory.children.items():
+            # print(item_name + " " + str(item)) 
+            result = self.search_directory(name, directory.get_item(item_name), new_items)
+            if result is not None:
+                return result + [item_name]
+        return None
+
     # Method for changing the current directory
     def change_directory(self, path):
         if path == "..":
@@ -30,7 +48,21 @@ class FileSystem:
         elif path in self.current_directory.children:
             self.current_directory = self.current_directory.get_item(path)
         else:
-            raise ValueError("Directory not found!")
+            items = path.split("/")
+            aux_directory = self.root
+            new_items = []
+
+            for item in items:
+                new_items = self.search_directory(item, aux_directory, new_items)
+                if new_items == None:
+                    raise ValueError("Directory not found!")
+                for item in list(reversed(new_items)):
+                    print(item)
+                    aux_directory = aux_directory.get_item(item)
+                new_items = []
+            self.current_directory = aux_directory
+
+    
 
     # Method for listing the contents of the current directory
     def list_directory(self):
