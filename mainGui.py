@@ -102,24 +102,25 @@ def createFile():
     root.withdraw()
     diskInputWindow = tk.Tk()
     diskInputWindow.title("Create File")
-    diskInputWindow.geometry("500x200")
+    diskInputWindow.geometry("570x340")
     # center the window
     diskInputWindow.eval('tk::PlaceWindow . center')
     diskInputWindow.protocol("WM_DELETE_WINDOW", exitProgram)
 
     tk.Label(diskInputWindow, text="Enter the name of the file:").grid(row=0, column=0, padx=10, pady=10)
     fileNameEntry = tk.Entry(diskInputWindow)
-    fileNameEntry.grid(row=0, column=1, padx=40, pady=10)
+    fileNameEntry.grid(row=0, column=1, padx=40, pady=10, ipadx=100)
 
     tk.Label(diskInputWindow, text="Enter the content of the file:").grid(row=1, column=0, padx=10, pady=10)
     fileContentEntry = tk.Entry(diskInputWindow)
-    fileContentEntry.grid(row=1, column=1, padx=40, ipady=50)
+    fileContentEntry.grid(row=1, column=1, padx=40, ipady=100, ipadx=100)
 
     cancelButton = tk.Button(diskInputWindow, text="Cancel", command=lambda: closeWindow(diskInputWindow, root))
-    cancelButton.grid(row=2, column=1, pady=20)
-
     submitButton = tk.Button(diskInputWindow, text="Create", command=lambda: submitFile(fileNameEntry, fileContentEntry, diskInputWindow))
-    submitButton.grid(row=2, column=2, pady=20)
+
+    #center the buttons
+    cancelButton.grid(row=2, column=0, pady=10)
+    submitButton.grid(row=2, column=1, pady=10)
 
     
 
