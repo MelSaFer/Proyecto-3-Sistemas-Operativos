@@ -54,7 +54,8 @@ def menu(fs: FileSystem):
         print("9. View File Content")
         print("10. View Properties")
         print("11. Move File")
-        print("12. Exit")
+        print("12. Get Directory")
+        print("13. Exit")
 
         choice = input("Enter choice: ")
 
@@ -139,6 +140,15 @@ def menu(fs: FileSystem):
                 print(e)
 
         elif choice == "12":
+            name = input("Enter the name of the directory to get: ")
+            try:
+                directory = fs.get_directory(name)
+                # print("Directory found successfully.")
+                # print(directory.name)
+            except ValueError as e:
+                print(e)
+
+        elif choice == "13":
             print("Exiting the program.")
             break
 

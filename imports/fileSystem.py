@@ -115,17 +115,50 @@ class FileSystem:
     #         new_directory.add_item(item)
     #         self.current_directory.remove_item(name)
 
-    # Method to get a directory given its path
+    def move_item(self, name, new_path):
+        item = self.current_directory.get_item(name)
+
+        if item is None:
+            print(f"No item named {name} found in {self.current_directory.path}")
+            return
+        
+        new_parent = self.get_directory(new_path)
+
+        if new_parent is None:
+            print(f"No directory found at {new_path}")
+            return
+        
+        if new_parent is self.current_directory:
+            new_name = input("Enter the new name for the file: ")
+            item.name = new_name
+
+        del self.current_directory.children[name]
+        item.parent = new_parent
+        new_parent.add_item(item)
+
+        print(f"Item {name} moved to {new_path}")
+
+    # Method to get a directory given its path without the root
     def get_directory(self, path):
-        if path == "":
+        if path == "" or path == "root":
             return self.root
         components = path.split("/")
+        
+        # print(components)
         directory = self.root
+
         for component in components:
+            print("directorio actual: ", directory.name)
             if component == "..":
-                directory = directory.parent
+                if directory.parent is not None:
+                    directory = directory.parent
+            elif component == "":
+                continue
             else:
-                directory = directory.get_item(component)
-                if not isinstance(directory, Directory):
+                next_directory = directory.get_item(component)
+                if not isinstance(next_directory, Directory):
+                    print(f"No directory named {component} found in {directory.path}")
                     return None
+                directory = next_directory
+        print(directory.name)
         return directory
