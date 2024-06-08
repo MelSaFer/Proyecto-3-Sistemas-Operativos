@@ -83,9 +83,27 @@ def createFile():
     return
 
 def createDirectory():
+    root.withdraw()
+    directoryName = simpledialog.askstring("Create Directory", "Enter the name of the directory:")
+    try:
+        fs.create_directory(directoryName)
+        messagebox.showinfo("Success", "Directory created successfully!")
+        # updateCurrentDirectoryLabel()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
     return
 
 def changeDirectory():
+    root.withdraw()
+    directoryPath = simpledialog.askstring("Change Directory", "Enter the path of the directory (.. for parent directory):")
+    try:
+        fs.change_directory(directoryPath)
+        messagebox.showinfo("Success", "Changed directory to " + fs.current_directory.path)
+        updateCurrentDirectoryLabel()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
     return
 
 def listDirectory():
@@ -126,11 +144,28 @@ def menubar(window):
 
     return menubar  
 
+def updateCurrentDirectoryLabel():
+    global currentDirectoryLabel
+    global fs
+    currentDirectoryLabel.config(text="Current Directory: " + fs.current_directory.path)
+
+
 def updateRootWindow():
+    global currentDirectoryLabel
+    global labelFrame
+
     root.deiconify()
     print("Updating root window after creating file...")
     menu = menubar(root)  
     root.config(menu=menu)  # Configure the root window to use the created menu bar
+    
+    labelFrame = tk.Frame(root, borderwidth=2, relief="groove")
+    labelFrame.pack(padx=10, pady=10, fill="x")
+
+    currentDirectoryLabel = tk.Label(labelFrame, text="Current Directory: " + fs.current_directory.path, anchor="w")
+    currentDirectoryLabel.pack(side="left", padx=10, fill="x")
+    
+
 
 def main():
     # Initialize global variables
