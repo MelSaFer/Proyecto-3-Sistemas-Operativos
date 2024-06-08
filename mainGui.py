@@ -74,13 +74,54 @@ def createFileSystemWindow():
     submitButton = tk.Button(diskInputWindow, text="Create", command=lambda: submitDiskInfo(diskSizeEntry, sectorCountEntry, diskInputWindow))
     submitButton.grid(row=2, columnspan=2, pady=10)
 
+
+'''---------------------------------------------------------------------------
+Function to submit the file name and content to create a file
+Entries: fileNameEntry - the entry widget for the file name
+            fileContentEntry - the entry widget for the file content
+            window - the window to close after the submission
+---------------------------------------------------------------------------'''
+def submitFile(fileNameEntry, fileContentEntry, window):
+    try:
+        fileName = fileNameEntry.get()
+        fileContent = fileContentEntry.get()
+        fs.create_file(fileName, fileContent, len(fileContent))
+        messagebox.showinfo("Success", "File created successfully!", parent=window)
+        window.destroy()
+        root.deiconify()
+        updateRootWindowItems()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e), parent=window)
+
 '''---------------------------------------------------------------------------
 Function to create a file
 Entries: none
 Returns: none
 ---------------------------------------------------------------------------'''  
 def createFile():
-    return
+    root.withdraw()
+    diskInputWindow = tk.Tk()
+    diskInputWindow.title("Create File")
+    diskInputWindow.geometry("500x200")
+    # center the window
+    diskInputWindow.eval('tk::PlaceWindow . center')
+    diskInputWindow.protocol("WM_DELETE_WINDOW", exitProgram)
+
+    tk.Label(diskInputWindow, text="Enter the name of the file:").grid(row=0, column=0, padx=10, pady=10)
+    fileNameEntry = tk.Entry(diskInputWindow)
+    fileNameEntry.grid(row=0, column=1, padx=40, pady=10)
+
+    tk.Label(diskInputWindow, text="Enter the content of the file:").grid(row=1, column=0, padx=10, pady=10)
+    fileContentEntry = tk.Entry(diskInputWindow)
+    fileContentEntry.grid(row=1, column=1, padx=40, ipady=50)
+
+    cancelButton = tk.Button(diskInputWindow, text="Cancel", command=lambda: closeWindow(diskInputWindow, root))
+    cancelButton.grid(row=2, column=1, pady=20)
+
+    submitButton = tk.Button(diskInputWindow, text="Create", command=lambda: submitFile(fileNameEntry, fileContentEntry, diskInputWindow))
+    submitButton.grid(row=2, column=2, pady=20)
+
+    
 
 def createDirectory():
     root.withdraw()
@@ -89,6 +130,7 @@ def createDirectory():
         fs.create_directory(directoryName)
         messagebox.showinfo("Success", "Directory created successfully!")
         # updateCurrentDirectoryLabel()
+        updateRootWindowItems()
     except ValueError as e:
         messagebox.showerror("Error", str(e))
     root.deiconify()
@@ -101,6 +143,7 @@ def changeDirectory():
         fs.change_directory(directoryPath)
         messagebox.showinfo("Success", "Changed directory to " + fs.current_directory.path)
         updateCurrentDirectoryLabel()
+        updateRootWindowItems() #! delete/modify
     except ValueError as e:
         messagebox.showerror("Error", str(e))
     root.deiconify()
@@ -113,6 +156,10 @@ def removeItem():
     return
 
 # GENERAL FUNCTIONS
+
+def closeWindow(window, root):
+    window.destroy()
+    root.deiconify()
 
 def exitProgram():
     # Actual command to close the application
@@ -164,8 +211,24 @@ def updateRootWindow():
 
     currentDirectoryLabel = tk.Label(labelFrame, text="Current Directory: " + fs.current_directory.path, anchor="w")
     currentDirectoryLabel.pack(side="left", padx=10, fill="x")
-    
 
+# temp function to update the items in the root window 
+# ! delete later
+def updateRootWindowItems():
+    global fs
+    #clean the window
+    for widget in root.winfo_children():
+        # if widget is  Label delete
+        if isinstance(widget, tk.Label):
+            widget.destroy()
+
+    currentDirectoryLabel = tk.Label(labelFrame, text="Current Directory: " + fs.current_directory.path, anchor="w")
+    currentDirectoryLabel.pack(side="left", padx=10, fill="x")
+
+    items = fs.list_directory()
+    for item in items:
+        tk.Label(root, text=item[0] + " - " + item[1]).pack(fill="x")
+    
 
 def main():
     # Initialize global variables
