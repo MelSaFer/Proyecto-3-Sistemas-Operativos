@@ -13,10 +13,10 @@ Entries: diskSize - the size of the disk in bytes
             sectorCount - the quantity of sectors
 Returns: True if the file system was created successfully, False otherwise
 ---------------------------------------------------------------------------'''
-def createFileSystem(diskSize, sectorCount, parentWindow):
+def createFileSystem(diskSize, sectorCount, sectors, parentWindow):
     try:
         global fs, isFileSystemCreated
-        virtualDisk = VirtualDisk("virtual_disk.bin", diskSize, sectorCount)
+        virtualDisk = VirtualDisk("virtual_disk.bin", diskSize, sectorCount, sectors)
         fs = FileSystem(virtualDisk)
         messagebox.showinfo("Success", "File system created successfully!", parent=parentWindow)
         isFileSystemCreated = True
@@ -38,7 +38,7 @@ def submitDiskInfo(diskSizeEntry, sectorCountEntry, window):
         if diskSize % sectorCount != 0:
             messagebox.showerror("Error", "The size of the disk must be a multiple of the sector size.", parent=window)
         else:
-            createFileSystem(diskSize, sectorCount, window)
+            createFileSystem(diskSize, diskSize//sectorCount, sectorCount, window)
     except ValueError:
         messagebox.showerror("Error", "Please enter valid integers for disk size and sector quantity.", parent=window)
 
@@ -123,7 +123,11 @@ def createFile():
     submitButton.grid(row=2, column=1, pady=10)
 
     
-
+'''---------------------------------------------------------------------------
+Function to create a directory
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
 def createDirectory():
     root.withdraw()
     directoryName = simpledialog.askstring("Create Directory", "Enter the name of the directory:")
@@ -137,6 +141,11 @@ def createDirectory():
     root.deiconify()
     return
 
+'''---------------------------------------------------------------------------
+Function to change the current directory
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
 def changeDirectory():
     root.withdraw()
     directoryPath = simpledialog.askstring("Change Directory", "Enter the path of the directory (.. for parent directory):")
@@ -150,10 +159,29 @@ def changeDirectory():
     root.deiconify()
     return
 
+'''---------------------------------------------------------------------------
+Function to list the contents of the current directory
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
 def listDirectory():
     return
 
+'''---------------------------------------------------------------------------
+Function to remove an item from the current directory
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
 def removeItem():
+    root.withdraw()
+    itemName = simpledialog.askstring("Remove Item", "Enter the name of the item to remove:")
+    try:
+        fs.remove_item(itemName)
+        messagebox.showinfo("Success", "Item removed successfully!")
+        updateRootWindowItems()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
     return
 
 # GENERAL FUNCTIONS
@@ -229,6 +257,7 @@ def updateRootWindowItems():
     items = fs.list_directory()
     for item in items:
         tk.Label(root, text=item[0] + " - " + item[1]).pack(fill="x")
+        
     
 
 def main():

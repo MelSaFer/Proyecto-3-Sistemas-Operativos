@@ -1,6 +1,7 @@
 from imports.directory import Directory
 from imports.file import File
 
+import re
 
 # FileSystem Class
 class FileSystem:
@@ -13,7 +14,21 @@ class FileSystem:
 
     # Method for creating a file
     def create_file(self, name, content, size):
+        print("Free sectors:", self.disk.free_sectors)
+        print("FAT:", self.disk.fat)
+
+        valid_name = use_regex(name)
+        if not valid_name:
+            raise ValueError("Name of file is missing extension or contains invalid characters.")
+        if name in self.current_directory.children:
+            raise ValueError("File already exists!")
+        
         new_file = File(name, content, size, self.current_directory)
+        print("Free sectors:", self.disk.free_sectors)
+        print("FAT:", self.disk.fat)
+
+        # Allocate file
+        self.allocateFile(new_file)
         self.current_directory.add_item(new_file)
 
     # Method for creating a directory
@@ -80,9 +95,84 @@ class FileSystem:
     def remove_item(self, name):
         if name in self.current_directory.children:
             del self.current_directory.children[name]
+            self.deallocateFile(name)
         else:
             raise ValueError("Item not found!")
         
-    def allocateFile(self):
+    ''' ----------------------------------- 
+        Methods for file allocation
+
+        This method allocates a file in the
+        virtual disk using the FAT table
+        for linked allocation
+        ----------------------------------- '''
+    def allocateFile(self, new_file):
+        # Get the size of the file
+        file_size = new_file.size
+
+        # Get the number of sectors needed
+        sectors_needed = file_size // self.disk.sector_size
+        if file_size % self.disk.sector_size != 0:
+            sectors_needed += 1
+
+        # Check if there is enough space in the disk
+        if sectors_needed > self.disk.free_sector_count():
+            raise ValueError("Not enough disk space available")
+            
+        # Find the first free sector
+        first_sector = self.disk.find_free_sector()
+        if first_sector is None:
+            raise ValueError("No disk space available")
         
+        # Allocate the first sector
+        self.disk.write_sector(first_sector, new_file.content[:self.disk.sector_size])
+
+        # Update the FAT table
+        self.disk.fat[new_file.name] = [first_sector]
+
+        print("ALLOCATE Free sectors:", self.disk.free_sectors)
+        print("FAT:", self.disk.fat)
+
+        sectors_needed -= 1
+
+        # Allocate the rest of the sectors
+        for i in range(0, sectors_needed):
+            next_sector = self.disk.find_free_sector()
+            if next_sector is None:
+                raise ValueError("No disk space available")
+            self.disk.write_sector(next_sector, new_file.content[i*self.disk.sector_size:(i+1)*self.disk.sector_size])
+            self.disk.fat[new_file.name] += [next_sector]
+            
+        print("free sectors:", self.disk.free_sectors)
+        print("fat:", self.disk.fat)
+
+        return True
+
+    ''' 
+    -----------------------------------
+    Method for file deallocation
+    ----------------------------------- 
+    '''
+    def deallocateFile(self, file_name):
+        # Validate the file name
+        if file_name not in self.disk.fat:
+            raise ValueError("File not found.")
+        
+        # Get the sectors of the file
+        sectors = self.disk.fat[file_name]
+
+        # Free the sectors
+        for sector in sectors:
+            self.disk.free_sectors[sector] = True
+
+        # Remove the file from the FAT table
+        del self.disk.fat[file_name]
+
+        print("DEALLOCATE Free sectors:", self.disk.free_sectors)
+        print("FAT:", self.disk.fat)
+
         return
+    
+def use_regex(input_text):
+    pattern = re.compile(r"[A-Za-z0-9\.]+\.[A-Za-z]+", re.IGNORECASE)
+    return pattern.match(input_text)
