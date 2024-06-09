@@ -5,7 +5,7 @@ from imports.virtualDisk import VirtualDisk
 
 # Create the virtual disk globally
 
-def Prueba(fs):
+def Prueba(fs: FileSystem):
 
     # Crear algunos directorios
     print("Creando directorios...")
@@ -40,15 +40,22 @@ def Prueba(fs):
     print(fs.list_directory())
 
 
-def menu(fs):
+def menu(fs: FileSystem):
     while True:
+        fs.print_file_system()	
         print("\nCurrent Directory:", fs.current_directory.path)
         print("1. Create File")
         print("2. Create Directory")
         print("3. Change Directory")
         print("4. List Directory")
         print("6. Remove Item")
-        print("7. Exit")
+        print("7. Find")
+        print("8. Modify File")
+        print("9. View File Content")
+        print("10. View Properties")
+        print("11. Move File")
+        print("12. Get Directory")
+        print("13. Exit")
 
         choice = input("Enter choice: ")
 
@@ -91,8 +98,57 @@ def menu(fs):
                 print("Item removed successfully.")
             except KeyError as e:
                 print(e)
-
+        
         elif choice == "7":
+            name = input("Enter the name of the file or directory to find: ")
+            try:
+                item = fs.find(name)
+            except KeyError as e:
+                print(e)
+
+        elif choice == "8":
+            name = input("Enter the name of the file to modify: ")
+            try:
+                fs.current_directory.modify_item(name)
+                # print("File modified successfully.")
+            except ValueError as e:
+                print(e)
+
+        elif choice == "9":
+            name = input("Enter the name of the file to view: ")
+            try:
+                content = fs.get_file_content(name)
+                print("Content of the file:")
+                print(content)
+            except ValueError as e:
+                print(e)
+
+        elif choice == "10":
+            name = input("Enter the name of the file or directory to view properties: ")
+            try:
+                fs.current_directory.view_properties(name)
+            except ValueError as e:
+                print(e)
+
+        elif choice == "11":
+            name = input("Enter the name of the file or directory to move: ")
+            destination = input("Enter the destination directory path: ")
+            try:
+                fs.move_item(name, destination)
+                # print("Item moved successfully.")
+            except ValueError as e:
+                print(e)
+
+        elif choice == "12":
+            name = input("Enter the name of the directory to get: ")
+            try:
+                directory = fs.get_directory(name)
+                # print("Directory found successfully.")
+                # print(directory.name)
+            except ValueError as e:
+                print(e)
+
+        elif choice == "13":
             print("Exiting the program.")
             break
 
