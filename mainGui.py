@@ -85,7 +85,25 @@ def submitFile(fileNameEntry, fileContentEntry, window):
     try:
         fileName = fileNameEntry.get()
         fileContent = fileContentEntry.get()
-        fs.create_file(fileName, fileContent, len(fileContent))
+        isCreated = fs.create_file(fileName, fileContent, len(fileContent))
+        if isCreated == None: # The file exists. Asks user if wants to overwrite it
+            response = messagebox.askyesno("Warning", "A file with the same name already exists. Do you want to overwrite it?")
+            if not response:
+                return
+            
+            # Remove the file 
+            auxFile = fs.current_directory.get_item(fileName)
+            fs.remove_item(fileName)
+
+            # Create the file 
+            isCreated = fs.create_file(fileName, fileContent, len(fileContent))
+            if not isCreated: # The file could not be created
+                print("creating file again...")
+                fs.create_file(auxFile.name, auxFile.content, len(auxFile.content))
+                raise ValueError("The file could not be created.")
+        if not isCreated:
+            raise ValueError("The file could not be created.")
+
         messagebox.showinfo("Success", "File created successfully!", parent=window)
         window.destroy()
         root.deiconify()
