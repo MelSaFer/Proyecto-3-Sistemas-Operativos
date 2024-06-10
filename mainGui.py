@@ -140,6 +140,53 @@ def createFile():
     cancelButton.grid(row=2, column=0, pady=10)
     submitButton.grid(row=2, column=1, pady=10)
 
+
+'''---------------------------------------------------------------------------
+Function to submit the modified file name and content
+Entries: fileNameEntry - the entry widget for the file name
+            fileContentEntry - the entry widget for the file content
+            window - the window to close after the submission   
+---------------------------------------------------------------------------'''
+def submitModifiedFile(fileNameEntry, fileContentEntry, window):
+    try:
+        fileName = fileNameEntry.get()
+        fileContent = fileContentEntry.get()        
+        fs.modify_item(fileName, fileContent)
+        messagebox.showinfo("Success", "File modified successfully!", parent=window)
+        window.destroy()
+        root.deiconify()
+        updateRootWindowItems()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e), parent=window)
+
+'''---------------------------------------------------------------------------
+Function to modify a file
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
+def modifyItem():
+    root.withdraw()
+    diskInputWindow = tk.Tk()
+    diskInputWindow.title("Modify File")
+    diskInputWindow.geometry("570x340")
+    # center the window
+    diskInputWindow.eval('tk::PlaceWindow . center')
+    diskInputWindow.protocol("WM_DELETE_WINDOW", exitProgram)
+
+    tk.Label(diskInputWindow, text="Enter the name of the file:").grid(row=0, column=0, padx=10, pady=10)
+    fileNameEntry = tk.Entry(diskInputWindow)
+    fileNameEntry.grid(row=0, column=1, padx=40, pady=10, ipadx=100)
+
+    tk.Label(diskInputWindow, text="Enter the content of the file:").grid(row=1, column=0, padx=10, pady=10)
+    fileContentEntry = tk.Entry(diskInputWindow)
+    fileContentEntry.grid(row=1, column=1, padx=40, ipady=100, ipadx=100)
+
+    cancelButton = tk.Button(diskInputWindow, text="Cancel", command=lambda: closeWindow(diskInputWindow, root))
+    submitButton = tk.Button(diskInputWindow, text="Create", command=lambda: submitModifiedFile(fileNameEntry, fileContentEntry, diskInputWindow))
+
+    #center the buttons
+    cancelButton.grid(row=2, column=0, pady=10)
+    submitButton.grid(row=2, column=1, pady=10)
     
 '''---------------------------------------------------------------------------
 Function to create a directory
@@ -172,6 +219,40 @@ def changeDirectory():
         messagebox.showinfo("Success", "Changed directory to " + fs.current_directory.path)
         updateCurrentDirectoryLabel()
         updateRootWindowItems() #! delete/modify
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
+
+
+'''---------------------------------------------------------------------------
+Function to open a file
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
+def openFile():
+    root.withdraw()
+    fileName = simpledialog.askstring("Open File", "Enter the name of the file to open:")
+    try:
+        file = fs.current_directory.get_item(fileName)
+        if isinstance(file, File):
+            fileContent = fs.get_file_content(fileName)
+            fileContentWindow = tk.Tk()
+            fileContentWindow.title("File Content")
+            fileContentWindow.geometry("570x340")
+            # center the window
+            fileContentWindow.eval('tk::PlaceWindow . center')
+            fileContentWindow.protocol("WM_DELETE_WINDOW", exitProgram)
+
+            tk.Label(fileContentWindow, text="File Name: " + file.name).pack(pady=10)
+            tk.Label(fileContentWindow, text="File Content:").pack(pady=10)
+            fileContentLabel = tk.Label(fileContentWindow, text=fileContent, wraplength=500, justify="left")
+            fileContentLabel.pack(pady=10)
+
+            closeButton = tk.Button(fileContentWindow, text="Close", command=lambda: closeWindow(fileContentWindow, root))
+            closeButton.pack(pady=10)
+        else:
+            messagebox.showerror("Error", "The item is not a file.")
     except ValueError as e:
         messagebox.showerror("Error", str(e))
     root.deiconify()
@@ -222,6 +303,8 @@ def menubar(window):
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="Create File", command=createFile)
         file_menu.add_command(label="Remove File", command=removeItem)
+        file_menu.add_command(label="Modify File", command=modifyItem)
+        file_menu.add_command(label="Open File", command=openFile)
         file_menu.add_separator()
         # file_menu.add_command(label="Exit", command=exitProgram)
         menubar.add_cascade(label="Files", menu=file_menu)
