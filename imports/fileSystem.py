@@ -22,15 +22,31 @@ class FileSystem:
         if not valid_name:
             raise ValueError("Name of file is missing extension or contains invalid characters.")
         if name in self.current_directory.children:
-            raise ValueError("File already exists!")
+            return None
         
         new_file = File(name, content, size, self.current_directory)
-        print("Free sectors:", self.disk.free_sectors)
-        print("FAT:", self.disk.fat)
 
         # Allocate file
-        self.allocateFile(new_file)
+        result = self.allocateFile(new_file)
+        if not result:
+            return False
         self.current_directory.add_item(new_file)
+        return True
+    
+    # Method for modifying a file
+    def modify_item(self, name, content):
+        if name in self.current_directory.children:
+            item = self.current_directory.get_item(name)
+            if isinstance(item, File):
+                allocated = self.allocateNewSectors(name, content)
+                if not allocated:
+                    raise ValueError("Not enough disk space available")
+                item.modify_content(content)
+                self.current_directory.children[name] = item
+            else:
+                raise ValueError("Directories can not be modified.")
+        else:
+            raise ValueError(f"No item named {name} found in {self.current_directory.path}")
 
     # Method for creating a directory
     def create_directory(self, name):
@@ -118,11 +134,13 @@ class FileSystem:
 
         # Check if there is enough space in the disk
         if sectors_needed > self.disk.free_sector_count():
+            return False
             raise ValueError("Not enough disk space available")
             
         # Find the first free sector
         first_sector = self.disk.find_free_sector()
         if first_sector is None:
+            return False
             raise ValueError("No disk space available")
         
         # Allocate the first sector
@@ -140,13 +158,61 @@ class FileSystem:
         for i in range(0, sectors_needed):
             next_sector = self.disk.find_free_sector()
             if next_sector is None:
-                raise ValueError("No disk space available")
+                return False
+                raise ValueError("Not enough disk space available")
             self.disk.write_sector(next_sector, new_file.content[i*self.disk.sector_size:(i+1)*self.disk.sector_size])
             self.disk.fat[new_file.name] += [next_sector]
             
         print("free sectors:", self.disk.free_sectors)
         print("fat:", self.disk.fat)
 
+        return True
+    
+
+    def allocateNewSectors(self, file_name, new_content):
+        # Get the size of the file
+        file_size = len(new_content)
+
+        # Get the number of sectors needed
+        sectors_needed = file_size // self.disk.sector_size
+        if file_size % self.disk.sector_size != 0:
+            sectors_needed += 1
+
+        # Check if there is enough space in the disk
+        if not self.validate_space(file_size, len(self.disk.fat[file_name])):
+            return False
+            raise ValueError("Not enough disk space available")
+        
+        lastSector = self.disk.fat[file_name][-1]
+
+        # Allocate the rest of the sectors
+        for i in range(lastSector, sectors_needed):
+            next_sector = self.disk.find_free_sector()
+            if next_sector is None:
+                return False
+                raise ValueError("Not enough disk space available")
+            self.disk.write_sector(next_sector, new_content[i*self.disk.sector_size:(i+1)*self.disk.sector_size])
+            self.disk.fat[file_name] += [next_sector]
+            
+        print("free sectors:", self.disk.free_sectors)
+        print("fat:", self.disk.fat)
+
+        return True
+
+    def validate_space(self, file_size, sectors):
+        # Get the number of sectors needed
+        sectors_needed = file_size // self.disk.sector_size
+        if file_size % self.disk.sector_size != 0:
+            sectors_needed += 1
+
+        print("Sectors needed:", sectors_needed)
+        print("Sectors:", sectors)
+        print("Free sectors:", self.disk.free_sector_count())
+
+        # Check if there is enough space in the disk
+        if sectors - sectors_needed > self.disk.free_sector_count():
+            return False
+            raise ValueError("Not enough disk space available")
         return True
 
     ''' 
