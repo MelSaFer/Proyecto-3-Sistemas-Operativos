@@ -1,6 +1,6 @@
 from imports.directory import Directory
 from imports.file import File
-
+from datetime import datetime
 import re
 from imports.virtualDisk import VirtualDisk
 
@@ -42,6 +42,8 @@ class FileSystem:
                 if not allocated:
                     raise ValueError("Not enough disk space available")
                 item.modify_content(content)
+                item.modification_time = datetime.now()
+                item.size = len(content)
                 self.current_directory.children[name] = item
             else:
                 raise ValueError("Directories can not be modified.")
@@ -115,6 +117,7 @@ class FileSystem:
             self.deallocateFile(name)
         else:
             raise ValueError("Item not found!")
+
         
     ''' ----------------------------------- 
         Methods for file allocation
@@ -128,7 +131,7 @@ class FileSystem:
         file_size = new_file.size
 
         # Get the number of sectors needed
-        sectors_needed = sectors_needed(file_size)
+        sectors_needed = self.get_sectors_needed(file_size)
 
         # Check if there is enough space in the disk
         if sectors_needed > self.disk.free_sector_count():
@@ -179,7 +182,7 @@ class FileSystem:
         file_size = len(new_content)
 
         # Get the number of sectors needed
-        sectors_needed = sectors_needed = sectors_needed(file_size)
+        sectors_needed = self.get_sectors_needed(file_size)
 
         # Check if needs to add or remove sectors
         result = self.add_or_remove(sectors_needed, len(self.disk.fat[file_name]))
@@ -261,7 +264,7 @@ class FileSystem:
     returns: sectors_needed
     --------------------------------
     '''
-    def sectors_needed(self, file_size):
+    def get_sectors_needed(self, file_size):
         # Get the number of sectors needed
         sectors_needed = file_size // self.disk.sector_size
         if file_size % self.disk.sector_size != 0:
@@ -319,6 +322,9 @@ class FileSystem:
         matches = []
         elements = [(self.root, self.root.name)]
 
+        if name[0] == ".":
+            return self.findByExtension(name)
+
         while elements:
             current_directory, current_path = elements.pop()
 
@@ -326,6 +332,27 @@ class FileSystem:
                 path = f"{current_path}/{item.name}"
                 if item.name == name:
                     matches.append(path)
+                if isinstance(item, Directory):
+                    elements.append((item, path))
+        
+        for match in matches:
+            print(match)
+
+        return matches
+    
+
+    def findByExtension(self, extension: str):
+        matches = []
+        elements = [(self.root, self.root.name)]
+
+        while elements:
+            current_directory, current_path = elements.pop()
+
+            for item in current_directory.children.values():
+                path = f"{current_path}/{item.name}"
+                if isinstance(item, File):
+                    if item.extension == extension:
+                        matches.append(path)
                 if isinstance(item, Directory):
                     elements.append((item, path))
         

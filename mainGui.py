@@ -182,7 +182,7 @@ def modifyItem():
     fileContentEntry.grid(row=1, column=1, padx=40, ipady=100, ipadx=100)
 
     cancelButton = tk.Button(diskInputWindow, text="Cancel", command=lambda: closeWindow(diskInputWindow, root))
-    submitButton = tk.Button(diskInputWindow, text="Create", command=lambda: submitModifiedFile(fileNameEntry, fileContentEntry, diskInputWindow))
+    submitButton = tk.Button(diskInputWindow, text="Modify", command=lambda: submitModifiedFile(fileNameEntry, fileContentEntry, diskInputWindow))
 
     #center the buttons
     cancelButton.grid(row=2, column=0, pady=10)
@@ -258,6 +258,39 @@ def openFile():
     root.deiconify()
     return
 
+
+'''---------------------------------------------------------------------------
+Function to see the properties of a file
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
+def seeProperties():
+    root.withdraw()
+    file_name = simpledialog.askstring("See Properties", "Enter the name of the file to see properties:")
+    try:
+        file = fs.current_directory.get_item(file_name)
+        if isinstance(file, File):
+            properties_window = tk.Tk()
+            properties_window.title("Properties")
+            properties_window.geometry("300x280")
+            properties_window.eval('tk::PlaceWindow . center')
+            properties_window.protocol("WM_DELETE_WINDOW", exitProgram)
+
+            tk.Label(properties_window, text="File Name: " + file.name).pack(pady=10)
+            tk.Label(properties_window, text="File Extension: " + file.extension).pack(pady=10)
+            tk.Label(properties_window, text="File Size: " + str(file.size) + " bytes").pack(pady=10)
+            tk.Label(properties_window, text="Creation Time: " + file.creation_time.strftime("%Y-%m-%d %H:%M:%S")).pack(pady=10)
+            tk.Label(properties_window, text="Modification Time: " + file.modification_time.strftime("%Y-%m-%d %H:%M:%S")).pack(pady=10)
+
+            closeButton = tk.Button(properties_window, text="Close", command=lambda: closeWindow(properties_window, root))
+            closeButton.pack(pady=10)
+        else:
+            raise ValueError("The specified name does not refer to a file")
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
+
 '''---------------------------------------------------------------------------
 Function to list the contents of the current directory
 Entries: none
@@ -283,6 +316,38 @@ def removeItem():
     root.deiconify()
     return
 
+
+'''---------------------------------------------------------------------------
+Function to find an item in the file system
+Entries: none
+Returns: none
+---------------------------------------------------------------------------'''
+def find():
+    root.withdraw()
+    itemName = simpledialog.askstring("Find Item", "Enter the name of the item to find:")
+    try:
+        matches = fs.find(itemName)
+        if len(matches) == 0:
+            messagebox.showinfo("Find", "No matches found.")
+        else:
+            matches_window = tk.Tk()
+            matches_window.title("Find Results")
+            matches_window.geometry("300x280")
+            matches_window.eval('tk::PlaceWindow . center')
+            matches_window.protocol("WM_DELETE_WINDOW", exitProgram)
+
+            tk.Label(matches_window, text="Matches for " + itemName + ":").pack(pady=10)
+            for match in matches:
+                tk.Label(matches_window, text=match).pack(pady=5)
+
+            closeButton = tk.Button(matches_window, text="Close", command=lambda: closeWindow(matches_window, root))
+            closeButton.pack(pady=10)
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    
+    return
+
 # GENERAL FUNCTIONS
 
 def closeWindow(window, root):
@@ -305,6 +370,7 @@ def menubar(window):
         file_menu.add_command(label="Remove File", command=removeItem)
         file_menu.add_command(label="Modify File", command=modifyItem)
         file_menu.add_command(label="Open File", command=openFile)
+        file_menu.add_command(label="See Properties", command=seeProperties)
         file_menu.add_separator()
         # file_menu.add_command(label="Exit", command=exitProgram)
         menubar.add_cascade(label="Files", menu=file_menu)
@@ -313,7 +379,12 @@ def menubar(window):
         directory_menu.add_command(label="Create Directory", command=createDirectory)
         directory_menu.add_command(label="Change Directory", command=changeDirectory)
         directory_menu.add_command(label="List Directory", command=listDirectory)
+        directory_menu.add_command(label="Remove Item", command=removeItem)
         menubar.add_cascade(label="Directories", menu=directory_menu)
+
+        actions_menu = tk.Menu(menubar, tearoff=0)
+        actions_menu.add_command(label="Find", command=find)
+        menubar.add_cascade(label="Actions", menu=actions_menu)
 
         menubar.add_command(label="Exit", command=exitProgram)
     else:
