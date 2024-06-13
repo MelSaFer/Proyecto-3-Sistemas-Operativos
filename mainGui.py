@@ -258,15 +258,12 @@ def openFile():
             fileContentWindow.geometry("570x340")
             # center the window
             fileContentWindow.eval('tk::PlaceWindow . center')
-            fileContentWindow.protocol("WM_DELETE_WINDOW", exitProgram)
 
             # tk.Label(fileContentWindow, text="File Name: " + file.name).pack(pady=10)
             tk.Label(fileContentWindow, text="File Content:").pack(pady=10)
             fileContentLabel = tk.Label(fileContentWindow, text=fileContent, wraplength=500, justify="left")
             fileContentLabel.pack(pady=1)
 
-            # closeButton = tk.Button(fileContentWindow, text="Close", command=lambda: closeWindow(fileContentWindow, root))
-            # closeButton.pack(pady=10)
         else:
             messagebox.showerror("Error", "The item is not a file.")
     except ValueError as e:
