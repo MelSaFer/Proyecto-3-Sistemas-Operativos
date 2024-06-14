@@ -1,6 +1,32 @@
-
-
-# Vistual Disk Class
+'''
+-----------------------------------------------
+Instituto Tecnológico de Costa Rica
+Escuela de Ingeniería en Computación
+Curso: Principios de Sistemas Operativos
+Profesor: Erika Marín Schumman
+Proyecto 3: File System
+Estudiantes:
+    - Salas Fernández Melany - 2021121147
+    - Solano Espinoza Moisés - 2021144322
+    - Zelaya Coto Fiorella - 2021453615
+-----------------------------------------------
+CLASS: VirtualDisk
+ATTRIBUTES:
+    file_path: str
+    size: int
+    sector_size: int
+    free_sectors: list
+    fat: dict
+METHODS:
+    __init__(self, file_path, disk_size, sector_size, sectors)
+    create_virtual_disk(self)
+    find_free_sector(self)
+    free_sector_count(self)
+    read_sector(self, sector_index)
+    write_sector(self, sector_index, data)
+    format_disk(self)
+-----------------------------------------------
+'''
 class VirtualDisk:
 
 
@@ -22,7 +48,6 @@ class VirtualDisk:
         except FileNotFoundError:
             with open(self.file_path, 'wb') as f:
                 f.write(b'\x00' * self.size)  # Initialize the file with zeros
-        #print(self.size//self.sector_size)
 
     def find_free_sector(self):
         # Find the first free sector in the virtual disk
@@ -46,8 +71,8 @@ class VirtualDisk:
             f.seek(sector_index * self.sector_size)
             # Data to bytes
             data = data.encode()
-            f.write(data.ljust(self.sector_size))  # Fill if necessary
-        self.free_sectors[sector_index] = False  # Mark the sector as not free
+            f.write(data.ljust(self.sector_size))  
+        self.free_sectors[sector_index] = False  
 
     def format_disk(self):
         with open(self.file_path, 'r+b') as f:
@@ -55,5 +80,3 @@ class VirtualDisk:
         self.free_sectors = [True] * (self.size // self.sector_size)  # Reset free sectors list
 
 
-# Example of usage
-#disk = VirtualDisk("virtual_disk.bin", 1024 * 1024)  # Crea un disco de 1MB

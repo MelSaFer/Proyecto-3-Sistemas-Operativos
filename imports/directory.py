@@ -1,6 +1,35 @@
 from imports.fileSystemItem import FileSystemItem
 from imports.file import File
 
+'''
+-----------------------------------------------
+Instituto Tecnológico de Costa Rica
+Escuela de Ingeniería en Computación
+Curso: Principios de Sistemas Operativos
+Profesor: Erika Marín Schumman
+Proyecto 3: File System
+Estudiantes:
+    - Salas Fernández Melany - 2021121147
+    - Solano Espinoza Moisés - 2021144322
+    - Zelaya Coto Fiorella - 2021453615
+-----------------------------------------------
+CLASS: Directory
+ATTRIBUTES:
+    name: str
+    parent: str
+    creation_time: datetime
+    modification_time: datetime
+    children: dict
+METHODS:
+    __init__(self, name, parent=None)
+    add_item(self, item)
+    modify_item(self, name: str)
+    get_item(self, name)
+    view_properties(self, name: str)
+    remove_item(self, name)
+    list_items(self)
+-----------------------------------------------
+'''
 class Directory(FileSystemItem):
     def __init__(self, name, parent=None):
         super().__init__(name, parent)
