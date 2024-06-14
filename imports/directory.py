@@ -77,3 +77,6 @@ class Directory(FileSystemItem):
 
     def list_items(self):
         return [(name, 'Directory' if isinstance(item, Directory) else 'File') for name, item in self.children.items()]
+    
+    def get_items(self):
+        return [(name, item) for name, item in self.children.items()]

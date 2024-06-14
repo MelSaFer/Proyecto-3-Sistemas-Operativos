@@ -2,6 +2,7 @@ from imports.directory import Directory
 from imports.file import File
 from datetime import datetime
 import re
+import os
 from imports.virtualDisk import VirtualDisk
 
 
@@ -100,6 +101,53 @@ class FileSystem:
             print(f"Error al copiar el archivo: {e}")
             return False
 
+    # Method for copying directories or files to the virtual disk
+    def copy_virtual_to_real(self, virtual_path, real_path):
+        print("Virtual path: ", virtual_path)
+        print("Real path: ", real_path)
+        name = virtual_path.rsplit('/', 1)[-1]
+        path = '/'.join(virtual_path.rsplit('/', 1)[:-1]) 
+
+        initial_directory = self.current_directory
+
+        print ("Name: ", name) # Falta parsear name si es una ruta con directorios
+        print ("Path: ", path)
+
+        directory = self.get_directory(path) # Get the directory from the path
+
+        if directory is None: # If the directory is none, then return false
+            return False
+        
+        # If item is none then it is a directory
+        item = directory.get_item(name) # Get the item from the directory
+        if item is None: # If the item is none, then return false
+            print(f"No item named {name} found in {self.current_directory.path}")
+            return False
+
+        # If its a directory, then create the directory in the real disk
+        if isinstance(item, Directory):
+            self.current_directory = item # Change the current directory to the directory to copy
+
+            if not os.path.exists(real_path + chr(92) + name): # Create directory in real disk
+                os.mkdir(real_path + chr(92) + name)
+
+            items = self.current_directory.get_items() # Get the items in the directory
+            for item_tuple in items:
+                item = self.current_directory.get_item(item_tuple[0]) # Get the item
+
+                if isinstance(item, File): # Create directory with file
+                    with open(real_path + chr(92) + name + chr(92) + item.name + ".txt", 'w+') as file: # Create the file in the real disk
+                        file.write(item.content)
+                else:
+                    self.copy_virtual_to_real(virtual_path + chr(47) + item.name, real_path + chr(92) + name) # Recursive call to copy the directory
+        else:
+            print("Item obtenido: ", item.name)
+            with open(real_path + chr(92) + item.name + ".txt", 'w+') as file: # Create the file in the real disk
+                file.write(item.content)
+        self.current_directory = initial_directory
+        return True
+        
+
     # Method for creating a directory
     def create_directory(self, name):
         new_directory = Directory(name, self.current_directory)
@@ -108,6 +156,8 @@ class FileSystem:
 
     # Method for recursive search of a directory
     def search_directory(self, name, directory, new_items):
+        if not isinstance(directory, Directory):
+            return None
 
         # print("Recursive search")
         # print(name + " " + directory.name + " " + str(directory.children))
@@ -129,10 +179,8 @@ class FileSystem:
         if path == "..":
             if self.current_directory.parent is not None:
                 self.current_directory = self.current_directory.parent
-            return
         elif path == "root":
             self.current_directory = self.root
-            return
         elif path in self.current_directory.children:
             self.current_directory = self.current_directory.get_item(path)
         else:
@@ -141,6 +189,7 @@ class FileSystem:
             new_items = []
 
             for item in items:
+                print("Iterating...")
                 new_items = self.search_directory(item, aux_directory, new_items)
                 if new_items == None:
                     raise ValueError("Directory not found!")
@@ -473,7 +522,7 @@ class FileSystem:
             if component == "..":
                 if directory.parent is not None:
                     directory = directory.parent
-            elif component == "":
+            elif component == "" or component == "root":
                 continue
             else:
                 next_directory = directory.get_item(component)
