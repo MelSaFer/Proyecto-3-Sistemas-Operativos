@@ -52,7 +52,7 @@ class FileSystem:
         
     def copy_real_to_virtual(self, real_path, file_name = None):
         try:
-            name = f'{real_path.split("\\")[-1]}'
+            name = f'{real_path.split(chr(92))[-1]}'
             print("File name:", file_name)
             
             # Leer el contenido del archivo en la ruta real
