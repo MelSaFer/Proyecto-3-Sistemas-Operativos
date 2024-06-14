@@ -53,24 +53,18 @@ class FileSystem:
         else:
             raise ValueError(f"No item named {name} found in {self.current_directory.path}")
         
-    def copy_real_to_virtual(self, real_path, file_name = None):
+    def copy_real_to_virtual(self, real_path):
+        print("Real path: ", real_path)
         try:
-            name = str({real_path.split("\\")[-1]})
-            print("File name:", file_name)
+            name = real_path.split("\\")[-1]
+            print("File name:", name)
             
             # Leer el contenido del archivo en la ruta real
             with open(real_path, 'r') as file:
                 content = file.read()
                 size = len(content)
-
             isCreated = self.create_file(name, content, size)
-            if isCreated == None and file_name is None:
-                return False
-            elif isCreated == None:
-                self.create_file(file_name, content, size)
-
             return True
-
         except Exception as e:
             print(f"Error al copiar el archivo: {e}")
 
@@ -106,9 +100,9 @@ class FileSystem:
         print("Virtual path: ", virtual_path)
         print("Real path: ", real_path)
         name = virtual_path.rsplit('/', 1)[-1]
-        path = '/'.join(virtual_path.rsplit('/', 1)[:-1]) 
+        path = '/'.join(virtual_path.rsplit('/', 1)[:-1])[5:]
 
-        initial_directory = self.current_directory
+        
 
         print ("Name: ", name) # Falta parsear name si es una ruta con directorios
         print ("Path: ", path)
@@ -125,6 +119,7 @@ class FileSystem:
             return False
 
         # If its a directory, then create the directory in the real disk
+        initial_dir = self.current_directory
         if isinstance(item, Directory):
             self.current_directory = item # Change the current directory to the directory to copy
 
@@ -132,19 +127,29 @@ class FileSystem:
                 os.mkdir(real_path + chr(92) + name)
 
             items = self.current_directory.get_items() # Get the items in the directory
+            if items is None or len(items) == 0:
+                self.current_directory = initial_dir
+                return True
+            print("Items: ", items)
             for item_tuple in items:
+                print("Item tuple: ", item_tuple)
                 item = self.current_directory.get_item(item_tuple[0]) # Get the item
 
                 if isinstance(item, File): # Create directory with file
                     with open(real_path + chr(92) + name + chr(92) + item.name + ".txt", 'w+') as file: # Create the file in the real disk
                         file.write(item.content)
+                elif item is None:
+                    print(f"No item named {name} found in {self.current_directory.path}")
+                    with open(real_path + chr(92) + name + "\\error.txt", 'w') as file: # Create the file in the real disk
+                        file.write("No item named " + name + " found in " + self.current_directory.path)
                 else:
                     self.copy_virtual_to_real(virtual_path + chr(47) + item.name, real_path + chr(92) + name) # Recursive call to copy the directory
         else:
             print("Item obtenido: ", item.name)
             with open(real_path + chr(92) + item.name + ".txt", 'w+') as file: # Create the file in the real disk
                 file.write(item.content)
-        self.current_directory = initial_directory
+
+        self.current_directory = initial_dir
         return True
         
 
