@@ -411,7 +411,24 @@ def printTree():
     return
 
 
-def copyFileToMachine():
+def copyFromMachineToVirtualDisk():
+    root.withdraw()
+    path = simpledialog.askstring("Copy File", "Enter the path of the file to copy:")
+    if path is None:
+        root.deiconify()  
+        return
+    try:
+        print("Path of file: ", path)
+        result = fs.copy_real_to_virtual(f'{path}')
+        if not result:
+            raise ValueError("The file could not be copied.")
+        messagebox.showinfo("Success", "File copied successfully!")
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
+
+def copyFileToVirtualDisk():
     root.withdraw()
     itemName = simpledialog.askstring("Copy File", "Enter the name of the file to copy:")
     if itemName is None:
@@ -425,13 +442,35 @@ def copyFileToMachine():
         root.deiconify()  
         return
     try:
-        print("Item name: ", itemName)
-        result = fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', pc_path)
+        print("Path of file: ", itemName)
+        result = fs.copy_virtual_to_virtual(f'{"root" + chr(47) + itemName}')
         if not result:
             raise ValueError("The file could not be copied.")
         messagebox.showinfo("Success", "File copied successfully!")
     except ValueError as e:
         messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
+
+def copyFileToMachine():
+    root.withdraw()
+    initial_directory = fs.current_directory
+    print("Initial directory: ", fs.current_directory.path)
+    path = simpledialog.askstring("Copy File", "Enter the file to copy:")
+    destination = simpledialog.askstring("Copy File", "Enter the destination path:")
+    if path is None:
+        root.deiconify()  
+        return
+    try:
+        print("Path of file: ", path)
+        result = fs.copy_virtual_to_real(f'{fs.current_directory.path + chr(47) + path}', f'{destination}')
+        if not result:
+            raise ValueError("The file could not be copied.")
+        messagebox.showinfo("Success", "File copied successfully!")
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    fs.current_directory = initial_directory
+    print("Current directory: ", fs.current_directory.path)
     root.deiconify()
     return
 
@@ -474,6 +513,8 @@ def menubar(window):
         actions_menu.add_command(label="Tree", command=printTree)
         actions_menu.add_separator()
         actions_menu.add_command(label="Copy File to Machine", command=copyFileToMachine)
+        actions_menu.add_command(label="Copy File from Machine", command=copyFromMachineToVirtualDisk)
+        actions_menu.add_command(label="Copy File to Virtual Disk", command=copyFileToVirtualDisk)
         menubar.add_cascade(label="Actions", menu=actions_menu)
 
         menubar.add_command(label="Exit", command=exitProgram)
