@@ -271,6 +271,23 @@ def openFile():
     root.deiconify()
     return
 
+def moveFile():
+    root.withdraw()
+    file_name = simpledialog.askstring("Move File", "Enter the name of the file to move:")
+    destination = simpledialog.askstring("Move File", "Enter the destination path:")
+    if file_name is None or destination is None:
+        root.deiconify()  
+        return
+    try:
+        result = fs.move_item(file_name, destination)
+        if not result:
+            raise ValueError("The file could not be moved.")
+        messagebox.showinfo("Success", "File moved successfully!")
+        updateRootWindowItems()
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
 
 '''---------------------------------------------------------------------------
 Function to see the properties of a file
@@ -361,6 +378,7 @@ def find():
         matches = fs.find(itemName)
         if len(matches) == 0:
             messagebox.showinfo("Find", "No matches found.")
+            root.deiconify()
         else:
             matches_window = tk.Tk()
             matches_window.title("Find Results")
@@ -368,18 +386,23 @@ def find():
 
             matches_window.geometry("300x280")
             matches_window.eval('tk::PlaceWindow . center')
-            matches_window.protocol("WM_DELETE_WINDOW", exitProgram)
+
+            def on_close():
+                matches_window.destroy()
+                root.deiconify()
+
+            matches_window.protocol("WM_DELETE_WINDOW", on_close)
 
             tk.Label(matches_window, text="Matches for " + itemName + ":").pack(pady=10)
             for match in matches:
                 tk.Label(matches_window, text=match).pack(pady=5)
 
-            closeButton = tk.Button(matches_window, text="Close", command=lambda: closeWindow(matches_window, root))
-            closeButton.pack(pady=10)
+            # closeButton = tk.Button(matches_window, text="Close", command=lambda: closeWindow(matches_window, root))
+            # closeButton.pack(pady=10)
     except ValueError as e:
         messagebox.showerror("Error", str(e))
-    root.deiconify()
-    matches_window = tk.Toplevel(root)
+    # root.deiconify()
+    # matches_window = tk.Toplevel(root)
     
     return
 
@@ -507,6 +530,7 @@ def menubar(window):
         file_menu.add_command(label="Remove File", command=removeItem)
         file_menu.add_command(label="Modify File", command=modifyItem)
         file_menu.add_command(label="Open File", command=openFile)
+        file_menu.add_command(label="Move File", command=moveFile)
         file_menu.add_command(label="See Properties", command=seeProperties)
         file_menu.add_separator()
         # file_menu.add_command(label="Exit", command=exitProgram)

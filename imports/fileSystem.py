@@ -53,20 +53,55 @@ class FileSystem:
         else:
             raise ValueError(f"No item named {name} found in {self.current_directory.path}")
         
-    def copy_real_to_virtual(self, real_path):
-        print("Real path: ", real_path)
+    def copy_real_to_virtual(self, real_path, file_name=None):
         try:
-            name = real_path.split("\\")[-1]
-            print("File name:", name)
-            
-            # Leer el contenido del archivo en la ruta real
-            with open(real_path, 'r') as file:
-                content = file.read()
-                size = len(content)
-            isCreated = self.create_file(name, content, size)
+            name = os.path.basename(real_path)
+            print("File/Directory name:", name)
+
+            print("regex:", use_regex(name))
+
+            if use_regex(name) is None:
+                # Es un directorio
+                self.create_directory(name)
+                new_dir = self.current_directory.get_item(name)
+                
+                try:
+                    items = os.listdir(real_path)
+                except PermissionError as e:
+                    print(f"Permission denied1: {e}")
+                    return False
+
+                for item in items:
+                    item_path = os.path.join(real_path, item)
+                    self.current_directory = new_dir  # Cambiar al nuevo directorio
+                    self.copy_real_to_virtual(item_path)  # Copiar recursivamente el contenido del directorio
+                
+                self.current_directory = new_dir.parent  # Volver al directorio anterior
+            else:
+                # Es un archivo
+                try:
+                    with open(real_path, 'r') as file:
+                        content = file.read()
+                        size = len(content)
+                except PermissionError as e:
+                    print(f"Permission denied2: {e}")
+                    return False
+
+                isCreated = self.create_file(name, content, size)
+
+                print("File created:", isCreated)
+                if isCreated is None and file_name is None:
+                    return False
+                elif isCreated is None:
+                    print("File already exists and renamed")
+                    self.create_file(file_name, content, size)
+
             return True
+
         except Exception as e:
-            print(f"Error al copiar el archivo: {e}")
+            print(f"Error al copiar el archivo/directorio: {e}")
+            return False
+
 
     def copy_virtual_to_virtual(self, virtual_path, file_name = None):
         name = virtual_path.rsplit('/', 1)[-1]
@@ -440,8 +475,10 @@ class FileSystem:
                 connector = "└── " if is_last else "├── "
                 if isinstance(item, File):
                     result += f"{prefix}{connector}{item.name} (File)\n"
+                    print(f"{prefix}{connector}{item.name} (File)")
                 elif isinstance(item, Directory):
                     result += f"{prefix}{connector}{item.name} (Directory)\n"
+                    print(f"{prefix}{connector}{item.name} (Directory)")
                     new_prefix = f"{prefix}{'    ' if is_last else '│   '}"
                     result += recursive_print(item, new_prefix)
             return result
@@ -499,38 +536,18 @@ class FileSystem:
 
         return matches
     
-    # def move_item(self, name: str, path: str):
-    #     item = self.current_directory.get_item(name)
-    #     if not item:
-    #         # raise ValueError(f"No item named {name} found in {self.current_directory.path}")
-    #         print(f"No item named {name} found in {self.current_directory.path}")
-    #     # if isinstance(item, Directory):
-    #     #     # raise ValueError("Directories can not be moved.")
-    #     #     print("Directories can not be moved.")
-    #     else:
-    #         new_directory = self.find(path)[0]
-    #         print("length", len(new_directory))
-    #         if not new_directory:
-    #             # raise ValueError(f"No directory found at {path}")
-    #             print(f"No directory found at {path}")
-    #         if new_directory == self.current_directory:
-    #             new_name = input("Enter the new name for the file: ")
-    #             item.name = new_name
-    #         new_directory.add_item(item)
-    #         self.current_directory.remove_item(name)
-
     def move_item(self, name, new_path):
         item = self.current_directory.get_item(name)
 
         if item is None:
             print(f"No item named {name} found in {self.current_directory.path}")
-            return
+            return False
         
         new_parent = self.get_directory(new_path)
 
         if new_parent is None:
             print(f"No directory found at {new_path}")
-            return
+            return False
         
         if new_parent is self.current_directory:
             new_name = input("Enter the new name for the file: ")
@@ -541,6 +558,7 @@ class FileSystem:
         new_parent.add_item(item)
 
         print(f"Item {name} moved to {new_path}")
+        return True
 
     # Method to get a directory given its path without the root
     def get_directory(self, path):

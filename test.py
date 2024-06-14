@@ -156,7 +156,7 @@ def menu(fs: FileSystem):
             real_path = input("Enter the path of the real path: ")
 
             try:
-                fs.copy_real_to_virtual(real_path, "si.txt")
+                fs.copy_real_to_virtual(real_path, "file1.txt")
                 print("File copied successfully.")
             except ValueError as e:
                 print(e)
