@@ -168,7 +168,11 @@ def menu(fs: FileSystem):
             print("Copying virtual to virtual")
             path = input("Enter the path of file: ")
             try:
-                fs.copy_virtual_to_virtual(path)
+                newName = None
+                result = fs.copy_virtual_to_virtual(path)
+                if result == None:
+                    newName = input("Enter the new name: ")
+                    result = fs.copy_virtual_to_virtual(path, newName)
                 print("File copied successfully.")
             except ValueError as e:
                 print(e)
@@ -176,7 +180,6 @@ def menu(fs: FileSystem):
         elif choice == "16":
             print("Exiting the program.")
             break
-
         else:
             print("Invalid choice. Please choose a valid option.")
 
