@@ -430,24 +430,33 @@ def copyFromMachineToVirtualDisk():
 
 def copyFileToVirtualDisk():
     root.withdraw()
-    itemName = simpledialog.askstring("Copy File", "Enter the name of the file to copy:")
-    if itemName is None:
-        root.deiconify()  
-        return
-    pc_path = simpledialog.askstring("Copy File", "Enter the path where you want to copy the file:")
-    if pc_path is None:
-        root.deiconify()  
-        return
-    if itemName is None:
+    path = simpledialog.askstring("Copy File", "Enter the path of the file to copy:")
+    if path is None:
         root.deiconify()  
         return
     try:
-        print("Path of file: ", itemName)
-        result = fs.copy_virtual_to_virtual(f'{"root" + chr(47) + itemName}')
+        print("Path of file: ", path)
+        result = fs.copy_virtual_to_virtual(f'{path}')
         if not result:
+            if result == None:
+                newName = simpledialog.askstring("Copy File", "The file already exists. Enter the new name:")
+                if newName is None:
+                    root.deiconify()  
+                    return
+                result = fs.copy_virtual_to_virtual(f'{path}', newName)
+                if result == False:
+                    raise ValueError("The file could not be copied.")
+                else:
+                    messagebox.showinfo("Success", "File copied successfully!")
+                    root.deiconify()
+                    updateRootWindowItems()
+                return
             raise ValueError("The file could not be copied.")
-        messagebox.showinfo("Success", "File copied successfully!")
+        else:
+            messagebox.showinfo("Success", "File copied successfully!")
+            updateRootWindowItems()
     except ValueError as e:
+        # messagebox.showerror("Error", "The file could not be copied.")
         messagebox.showerror("Error", str(e))
     root.deiconify()
     return
@@ -473,6 +482,8 @@ def copyFileToMachine():
     print("Current directory: ", fs.current_directory.path)
     root.deiconify()
     return
+
+
 
 # GENERAL FUNCTIONS
 
@@ -514,7 +525,7 @@ def menubar(window):
         actions_menu.add_separator()
         actions_menu.add_command(label="Copy File to Machine", command=copyFileToMachine)
         actions_menu.add_command(label="Copy File from Machine", command=copyFromMachineToVirtualDisk)
-        actions_menu.add_command(label="Copy File to Virtual Disk", command=copyFileToVirtualDisk)
+        actions_menu.add_command(label="Copy File from Virtual Disk", command=copyFileToVirtualDisk)
         menubar.add_cascade(label="Actions", menu=actions_menu)
 
         menubar.add_command(label="Exit", command=exitProgram)
