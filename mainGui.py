@@ -196,6 +196,10 @@ Returns: none
 def createDirectory():
     root.withdraw()
     directoryName = simpledialog.askstring("Create Directory", "Enter the name of the directory:")
+
+    if directoryName is None:
+        root.deiconify()  
+        return
     try:
         fs.create_directory(directoryName)
         messagebox.showinfo("Success", "Directory created successfully!")
@@ -214,6 +218,11 @@ Returns: none
 def changeDirectory():
     root.withdraw()
     directoryPath = simpledialog.askstring("Change Directory", "Enter the path of the directory (.. for parent directory):")
+
+    if directoryPath is None:
+        root.deiconify()  
+        return
+
     try:
         fs.change_directory(directoryPath)
         messagebox.showinfo("Success", "Changed directory to " + fs.current_directory.path)
@@ -232,25 +241,29 @@ Returns: none
 ---------------------------------------------------------------------------'''
 def openFile():
     root.withdraw()
-    fileName = simpledialog.askstring("Open File", "Enter the name of the file to open:")
+    filename = simpledialog.askstring("Open File", "Enter the name of the file to open:")
+
+    if filename is None:
+        root.deiconify()  
+        return
+    
+    print("Opening file...")
     try:
-        file = fs.current_directory.get_item(fileName)
+        print(filename)
+        file = fs.current_directory.get_item(filename)
         if isinstance(file, File):
-            fileContent = fs.get_file_content(fileName)
+            fileContent = fs.get_file_content(filename)
             fileContentWindow = tk.Tk()
-            fileContentWindow.title("File Content")
+            fileContentWindow.title("File Content: " + file.name)
             fileContentWindow.geometry("570x340")
             # center the window
             fileContentWindow.eval('tk::PlaceWindow . center')
-            fileContentWindow.protocol("WM_DELETE_WINDOW", exitProgram)
 
-            tk.Label(fileContentWindow, text="File Name: " + file.name).pack(pady=10)
+            # tk.Label(fileContentWindow, text="File Name: " + file.name).pack(pady=10)
             tk.Label(fileContentWindow, text="File Content:").pack(pady=10)
             fileContentLabel = tk.Label(fileContentWindow, text=fileContent, wraplength=500, justify="left")
-            fileContentLabel.pack(pady=10)
+            fileContentLabel.pack(pady=1)
 
-            closeButton = tk.Button(fileContentWindow, text="Close", command=lambda: closeWindow(fileContentWindow, root))
-            closeButton.pack(pady=10)
         else:
             messagebox.showerror("Error", "The item is not a file.")
     except ValueError as e:
@@ -267,6 +280,11 @@ Returns: none
 def seeProperties():
     root.withdraw()
     file_name = simpledialog.askstring("See Properties", "Enter the name of the file to see properties:")
+
+    if file_name is None:
+        root.deiconify()  
+        return
+    
     try:
         file = fs.current_directory.get_item(file_name)
         if isinstance(file, File):
@@ -307,6 +325,15 @@ Returns: none
 def removeItem():
     root.withdraw()
     itemName = simpledialog.askstring("Remove Item", "Enter the name of the item to remove:")
+
+    if itemName is None:
+        root.deiconify()  
+        return
+
+    if itemName is None:
+        root.deiconify()  
+        return
+    
     try:
         fs.remove_item(itemName)
         messagebox.showinfo("Success", "Item removed successfully!")
@@ -325,6 +352,11 @@ Returns: none
 def find():
     root.withdraw()
     itemName = simpledialog.askstring("Find Item", "Enter the name of the item to find:")
+
+    if itemName is None:
+        root.deiconify()  
+        return
+    
     try:
         matches = fs.find(itemName)
         if len(matches) == 0:
@@ -332,6 +364,8 @@ def find():
         else:
             matches_window = tk.Tk()
             matches_window.title("Find Results")
+            
+
             matches_window.geometry("300x280")
             matches_window.eval('tk::PlaceWindow . center')
             matches_window.protocol("WM_DELETE_WINDOW", exitProgram)
@@ -345,6 +379,7 @@ def find():
     except ValueError as e:
         messagebox.showerror("Error", str(e))
     root.deiconify()
+    matches_window = tk.Toplevel(root)
     
     return
 
@@ -410,6 +445,7 @@ def updateRootWindow():
     labelFrame = tk.Frame(root, borderwidth=2, relief="groove")
     labelFrame.pack(padx=10, pady=10, fill="x")
 
+
     currentDirectoryLabel = tk.Label(labelFrame, text="Current Directory: " + fs.current_directory.path, anchor="w")
     currentDirectoryLabel.pack(side="left", padx=10, fill="x")
 
@@ -417,14 +453,14 @@ def updateRootWindow():
 # ! delete later
 def updateRootWindowItems():
     global fs
+    global currentDirectoryLabel
     #clean the window
     for widget in root.winfo_children():
         # if widget is  Label delete
         if isinstance(widget, tk.Label):
             widget.destroy()
 
-    currentDirectoryLabel = tk.Label(labelFrame, text="Current Directory: " + fs.current_directory.path, anchor="w")
-    currentDirectoryLabel.pack(side="left", padx=10, fill="x")
+    updateCurrentDirectoryLabel()
 
     items = fs.list_directory()
     for item in items:

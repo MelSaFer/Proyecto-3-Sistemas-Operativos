@@ -99,6 +99,7 @@ class FileSystem:
 
     # Method for recursive search of a directory
     def search_directory(self, name, directory, new_items):
+
         # print("Recursive search")
         # print(name + " " + directory.name + " " + str(directory.children))
         if name == directory.name:
@@ -119,6 +120,9 @@ class FileSystem:
         if path == "..":
             if self.current_directory.parent is not None:
                 self.current_directory = self.current_directory.parent
+            return
+        elif path == "root":
+            self.current_directory = self.root
             return
         elif path in self.current_directory.children:
             self.current_directory = self.current_directory.get_item(path)
