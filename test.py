@@ -55,7 +55,10 @@ def menu(fs: FileSystem):
         print("10. View Properties")
         print("11. Move File")
         print("12. Get Directory")
-        print("13. Exit")
+        print("13. Copy real to virtual")
+        print("14. Copy virtual to real")
+        print("15. Copy virtual to virtual")
+        print("16. Exit")
 
         choice = input("Enter choice: ")
 
@@ -63,7 +66,7 @@ def menu(fs: FileSystem):
             name = input("Enter file name: ")
             content = input("Enter content of the file: ")
             try:
-                fs.create_file(name, content, len(content)*1000)
+                fs.create_file(name, content, len(content))
                 print("File created successfully.")
             except ValueError as e:
                 print(e)
@@ -94,7 +97,7 @@ def menu(fs: FileSystem):
         elif choice == "6":
             name = input("Enter the name of the item to remove: ")
             try:
-                fs.current_directory.remove_item(name)
+                fs.remove_item(name)
                 print("Item removed successfully.")
             except KeyError as e:
                 print(e)
@@ -149,6 +152,28 @@ def menu(fs: FileSystem):
                 print(e)
 
         elif choice == "13":
+            print("Copying real to virtual")
+            real_path = input("Enter the path of the real path: ")
+
+            try:
+                fs.copy_real_to_virtual(real_path, "si.txt")
+                print("File copied successfully.")
+            except ValueError as e:
+                print(e)
+
+        elif choice == "14":
+            print("Copying virtual to real")
+
+        elif choice == "15":
+            print("Copying virtual to virtual")
+            path = input("Enter the path of file: ")
+            try:
+                fs.copy_virtual_to_virtual(path)
+                print("File copied successfully.")
+            except ValueError as e:
+                print(e)
+
+        elif choice == "16":
             print("Exiting the program.")
             break
 
@@ -166,7 +191,7 @@ def main():
         print("The size of the disk must be a multiple of the size of a sector.")
         return
     
-    virtualDisk = VirtualDisk("virtual_disk.bin", diskSize, diskSize//sectorQuantity)
+    virtualDisk = VirtualDisk("virtual_disk.bin", diskSize, diskSize//sectorQuantity, sectorQuantity)
     fs = FileSystem(virtualDisk)
 
     print("Virtual Disk created successfully.")

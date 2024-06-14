@@ -49,6 +49,47 @@ class FileSystem:
                 raise ValueError("Directories can not be modified.")
         else:
             raise ValueError(f"No item named {name} found in {self.current_directory.path}")
+        
+    def copy_real_to_virtual(self, real_path, file_name = None):
+        try:
+            name = f'{real_path.split("\\")[-1]}'
+            print("File name:", file_name)
+            
+            # Leer el contenido del archivo en la ruta real
+            with open(real_path, 'r') as file:
+                content = file.read()
+                size = len(content)
+
+            isCreated = self.create_file(name, content, size)
+            if isCreated == None and file_name is None:
+                return False
+            elif isCreated == None:
+                self.create_file(file_name, content, size)
+
+            return True
+
+        except Exception as e:
+            print(f"Error al copiar el archivo: {e}")
+
+    def copy_virtual_to_virtual(self, virtual_path):
+        name = virtual_path.rsplit('/', 1)[-1]
+        path = '/'.join(virtual_path.rsplit('/', 1)[:-1])
+
+        print ("Name: ", name)
+        print ("Path: ", path)
+
+        directory = self.get_directory(path)
+
+        if directory is None:
+            return False
+        
+        item = directory.get_item(name)
+        if item is None:
+            print(f"No item named {name} found in {self.current_directory.path}")
+            return False
+        
+        print("Item obtenido: ", item.name)
+        self.current_directory.add_item(item)
 
     # Method for creating a directory
     def create_directory(self, name):
@@ -113,7 +154,8 @@ class FileSystem:
     # Method for removing an item from the current directory
     def remove_item(self, name):
         if name in self.current_directory.children:
-            del self.current_directory.children[name]
+            # del self.current_directory.children[name]
+            self.current_directory.remove_item(name)
             self.deallocateFile(name)
         else:
             raise ValueError("Item not found!")
