@@ -5,6 +5,7 @@ import re
 import os
 from imports.virtualDisk import VirtualDisk
 
+
 # FileSystem Class
 class FileSystem:
 
@@ -26,6 +27,7 @@ class FileSystem:
             return None
         
         new_file = File(name, content, size, self.current_directory)
+        print("File created with id: ", new_file.id)
 
         # Allocate file
         result = self.allocateFile(new_file)
@@ -53,7 +55,7 @@ class FileSystem:
         
     def copy_real_to_virtual(self, real_path, file_name = None):
         try:
-            name = f'{real_path.split(chr(92))[-1]}'
+            name = str({real_path.split("\\")[-1]})
             print("File name:", file_name)
             
             # Leer el contenido del archivo en la ruta real
@@ -72,13 +74,11 @@ class FileSystem:
         except Exception as e:
             print(f"Error al copiar el archivo: {e}")
 
-    def copy_virtual_to_virtual(self, virtual_path):
+    def copy_virtual_to_virtual(self, virtual_path, file_name = None):
         name = virtual_path.rsplit('/', 1)[-1]
         path = '/'.join(virtual_path.rsplit('/', 1)[:-1])
-
-        print ("Name: ", name)
-        print ("Path: ", path)
-
+        # print ("Name: ", name)
+        # print ("Path: ", path)
         directory = self.get_directory(path)
 
         if directory is None:
@@ -90,7 +90,16 @@ class FileSystem:
             return False
         
         print("Item obtenido: ", item.name)
-        self.current_directory.add_item(item)
+        try:
+            # self.current_directory.add_item(item)
+            if file_name == None:
+                createFile = self.create_file(item.name, item.content, item.size)
+            else:
+                createFile = self.create_file(str(file_name), item.content, item.size)
+            return createFile
+        except Exception as e:
+            print(f"Error al copiar el archivo: {e}")
+            return False
 
     # Method for copying directories or files to the virtual disk
     def copy_virtual_to_real(self, virtual_path, real_path):
