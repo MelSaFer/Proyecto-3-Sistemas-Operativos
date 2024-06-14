@@ -2,6 +2,7 @@ from imports.directory import Directory
 from imports.file import File
 from datetime import datetime
 import re
+import os
 from imports.virtualDisk import VirtualDisk
 
 # FileSystem Class
@@ -52,7 +53,7 @@ class FileSystem:
         
     def copy_real_to_virtual(self, real_path, file_name = None):
         try:
-            name = f'{real_path.split("\\")[-1]}'
+            name = f'{real_path.split(chr(92))[-1]}'
             print("File name:", file_name)
             
             # Leer el contenido del archivo en la ruta real
@@ -90,6 +91,49 @@ class FileSystem:
         
         print("Item obtenido: ", item.name)
         self.current_directory.add_item(item)
+
+    # Method for copying directories or files to the virtual disk
+    def copy_virtual_to_real(self, virtual_path, real_path):
+        name = virtual_path.rsplit('/', 1)[-1]
+        path = '/'.join(virtual_path.rsplit('/', 1)[:-1])
+
+        print ("Name: ", name) # Falta parsear name si es una ruta con directorios
+        print ("Path: ", path)
+
+        directory = self.get_directory(path)
+
+        if directory is None:
+            return False
+        
+        # If item is none then it is a directory
+        item = directory.get_item(name) # Get the item from the directory
+        if item is None:
+            print(f"No item named {name} found in {self.current_directory.path}")
+            return False
+
+        # If its a directory, then create the directory in the real disk
+        if isinstance(item, Directory):
+            self.current_directory = item
+
+            if not os.path.exists(real_path + chr(92) + name): # Create directory in real disk
+                os.mkdir(real_path + chr(92) + name)
+
+            items = self.current_directory.get_items() # Get the items in the directory
+            for item_tuple in items:
+                item = self.current_directory.get_item(item_tuple[0]) # Get the item
+
+                if isinstance(item, File): # Create directory with file
+                    with open(real_path + chr(92) + name + chr(92) + item.name, 'w+') as file: # Create the file in the real disk
+                        file.write(item.content)
+                else:
+                    self.copy_virtual_to_real(virtual_path + chr(92) + item.name, real_path + chr(92) + name + chr(92) + item.name) # Recursive call to copy the directory
+            return True
+        
+        print("Item obtenido: ", item.name)
+        with open(real_path + chr(92) + item.name, 'w+') as file: # Create the file in the real disk
+            file.write(item.content)
+        return True
+        
 
     # Method for creating a directory
     def create_directory(self, name):

@@ -383,6 +383,21 @@ def find():
     
     return
 
+
+def copyFileToMachine():
+    root.withdraw()
+    itemName = simpledialog.askstring("Copy File", "Enter the name of the file to copy:")
+    if itemName is None:
+        root.deiconify()  
+        return
+    try:
+        fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', f'{"C:" + chr(92) +"Users"+ chr(92) +"XPC"+ chr(92) +"Desktop"}')
+        messagebox.showinfo("Success", "File copied successfully!")
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    root.deiconify()
+    return
+
 # GENERAL FUNCTIONS
 
 def closeWindow(window, root):
@@ -420,6 +435,7 @@ def menubar(window):
         actions_menu = tk.Menu(menubar, tearoff=0)
         actions_menu.add_command(label="Find", command=find)
         menubar.add_cascade(label="Actions", menu=actions_menu)
+        menubar.add_command(label="Copy File to Machine", command=copyFileToMachine)
 
         menubar.add_command(label="Exit", command=exitProgram)
     else:
@@ -486,3 +502,5 @@ def main():
     root.mainloop()
 
 main()
+
+# TESTING
