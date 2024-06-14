@@ -76,10 +76,8 @@ class FileSystem:
     def copy_virtual_to_virtual(self, virtual_path, file_name = None):
         name = virtual_path.rsplit('/', 1)[-1]
         path = '/'.join(virtual_path.rsplit('/', 1)[:-1])
-
-        print ("Name: ", name)
-        print ("Path: ", path)
-
+        # print ("Name: ", name)
+        # print ("Path: ", path)
         directory = self.get_directory(path)
 
         if directory is None:
