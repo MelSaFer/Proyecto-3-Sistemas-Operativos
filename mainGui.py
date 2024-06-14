@@ -391,7 +391,10 @@ def copyFileToMachine():
         root.deiconify()  
         return
     try:
-        fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', f'{"C:" + chr(92) +"Users"+ chr(92) +"XPC"+ chr(92) +"Desktop"}')
+        print("Item name: ", itemName)
+        result = fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', f'{"C:" + chr(92) +"Users"+ chr(92) +"XPC"+ chr(92) +"Desktop"}')
+        if not result:
+            raise ValueError("The file could not be copied.")
         messagebox.showinfo("Success", "File copied successfully!")
     except ValueError as e:
         messagebox.showerror("Error", str(e))
@@ -434,8 +437,8 @@ def menubar(window):
 
         actions_menu = tk.Menu(menubar, tearoff=0)
         actions_menu.add_command(label="Find", command=find)
+        actions_menu.add_command(label="Copy File to Machine", command=copyFileToMachine)
         menubar.add_cascade(label="Actions", menu=actions_menu)
-        menubar.add_command(label="Copy File to Machine", command=copyFileToMachine)
 
         menubar.add_command(label="Exit", command=exitProgram)
     else:
