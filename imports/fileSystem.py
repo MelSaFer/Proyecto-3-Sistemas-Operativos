@@ -3,7 +3,7 @@ from imports.file import File
 from datetime import datetime
 import re
 from imports.virtualDisk import VirtualDisk
-import copy
+
 
 # FileSystem Class
 class FileSystem:
@@ -26,6 +26,7 @@ class FileSystem:
             return None
         
         new_file = File(name, content, size, self.current_directory)
+        print("File created with id: ", new_file.id)
 
         # Allocate file
         result = self.allocateFile(new_file)
