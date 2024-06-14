@@ -53,6 +53,7 @@ class FileSystem:
         else:
             raise ValueError(f"No item named {name} found in {self.current_directory.path}")
         
+    # Method for copying files or directories
     def copy_real_to_virtual(self, real_path, file_name = None):
         try:
             name = str({real_path.split("\\")[-1]})
@@ -215,12 +216,16 @@ class FileSystem:
 
     # Method for removing an item from the current directory
     def remove_item(self, name):
-        if name in self.current_directory.children:
-            # del self.current_directory.children[name]
-            self.current_directory.remove_item(name)
-            self.deallocateFile(name)
-        else:
-            raise ValueError("Item not found!")
+        try:
+            if name in self.current_directory.children:
+                # del self.current_directory.children[name]
+                
+                self.deallocateFile(name)
+                self.current_directory.remove_item(name)
+            else:
+                raise ValueError("Item not found!")
+        except ValueError as e:
+            print(f"Error: {e}")
 
         
     ''' ----------------------------------- 
@@ -382,43 +387,68 @@ class FileSystem:
     ----------------------------------- 
     '''
     def deallocateFile(self, file_name):
-        # Validate the file name
-        if file_name not in self.disk.fat:
-            raise ValueError("File not found.")
-        
-        # Get the sectors of the file
-        sectors = self.disk.fat[file_name]
+        try:
+            item = self.current_directory.get_item(file_name)
+            print("Item type: ", type(item))
 
-        # Free the sectors
-        for sector in sectors:
-            self.disk.free_sectors[sector] = True
+            if item is None:
+                raise ValueError("Item not found.")
 
-        # Remove the file from the FAT table
-        del self.disk.fat[file_name]
+            if isinstance(item, File):
+                if file_name not in self.disk.fat:
+                    raise ValueError("File not found.")
+                
+                print("Deallocation file name: ", file_name)
+                sectors = self.disk.fat[file_name]
 
-        print("DEALLOCATE Free sectors:", self.disk.free_sectors)
-        print("FAT:", self.disk.fat)
+                for sector in sectors:
+                    self.disk.free_sectors[sector] = True
 
-        return
+                del self.disk.fat[file_name]
+
+            elif isinstance(item, Directory):
+                items = list(item.children.values())
+                initial_directory = self.current_directory
+
+                self.current_directory = item
+
+                for i in items:
+                    print("Item: ", i.name)
+                    self.deallocateFile(i.name)
+
+                self.current_directory = initial_directory
+
+            # self.current_directory.remove_item(file_name)
+
+            print("DEALLOCATE Free sectors:", self.disk.free_sectors)
+            print("FAT:", self.disk.fat)
+        except ValueError as e:
+            print(f"Error: {e}")
+
 
     # Method to print the entire file system
     def print_file_system(self):
         def recursive_print(directory: Directory, prefix=""):
+            result = ''
             items = list(directory.children.values())
             for i, item in enumerate(items):
                 is_last = (i == len(items) - 1)
                 connector = "└── " if is_last else "├── "
                 if isinstance(item, File):
-                    print(f"{prefix}{connector}{item.name} (File)")
+                    result += f"{prefix}{connector}{item.name} (File)\n"
                 elif isinstance(item, Directory):
-                    print(f"{prefix}{connector}{item.name} (Directory)")
+                    result += f"{prefix}{connector}{item.name} (Directory)\n"
                     new_prefix = f"{prefix}{'    ' if is_last else '│   '}"
-                    recursive_print(item, new_prefix)
+                    result += recursive_print(item, new_prefix)
+            return result
         
-        print("\n--------------------")
-        print(f"{self.root.name} (Directory)")
-        recursive_print(self.root)
-        print("--------------------")
+        result = "\n--------------------\n"
+        result += f"{self.root.name} (Directory)\n"
+        result += recursive_print(self.root)
+        result += "--------------------\n"
+
+        return result
+
 
     # Method to find a file or directory in the file system
     # Returns the route to the file or directory, or None if it is not found

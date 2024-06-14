@@ -383,6 +383,33 @@ def find():
     
     return
 
+def printTree():
+    root.withdraw()
+    diskInputWindow = tk.Tk()
+    diskInputWindow.title("TREE")
+    diskInputWindow.geometry("570x340")
+    # center the window
+    diskInputWindow.eval('tk::PlaceWindow . center')
+    def on_close():
+        diskInputWindow.destroy()
+        root.deiconify()
+
+    diskInputWindow.protocol("WM_DELETE_WINDOW", on_close)
+
+    try:
+        text = tk.Text(diskInputWindow, wrap="word", padx=10, pady=10, font=("Courier New", 10))
+        text.pack(expand=True, fill="both")
+
+        # Insertar el texto del sistema de archivos en el widget Text
+        text.insert(tk.END, fs.print_file_system())
+        text.configure(state="disabled")  # Hacer el widget Text de solo lectura
+
+        print(fs.print_file_system())
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+    # root.deiconify()
+    return
+
 
 def copyFileToMachine():
     root.withdraw()
@@ -390,9 +417,16 @@ def copyFileToMachine():
     if itemName is None:
         root.deiconify()  
         return
+    pc_path = simpledialog.askstring("Copy File", "Enter the path where you want to copy the file:")
+    if pc_path is None:
+        root.deiconify()  
+        return
+    if itemName is None:
+        root.deiconify()  
+        return
     try:
         print("Item name: ", itemName)
-        result = fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', f'{"C:" + chr(92) +"Users"+ chr(92) +"XPC"+ chr(92) +"Desktop"}')
+        result = fs.copy_virtual_to_real(f'{"root" + chr(47) + itemName}', pc_path)
         if not result:
             raise ValueError("The file could not be copied.")
         messagebox.showinfo("Success", "File copied successfully!")
@@ -437,6 +471,8 @@ def menubar(window):
 
         actions_menu = tk.Menu(menubar, tearoff=0)
         actions_menu.add_command(label="Find", command=find)
+        actions_menu.add_command(label="Tree", command=printTree)
+        actions_menu.add_separator()
         actions_menu.add_command(label="Copy File to Machine", command=copyFileToMachine)
         menubar.add_cascade(label="Actions", menu=actions_menu)
 
